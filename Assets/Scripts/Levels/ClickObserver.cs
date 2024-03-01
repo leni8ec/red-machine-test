@@ -29,9 +29,11 @@ namespace Levels
         private void OnPointerDown(Vector3 position)
         {
             colorConnectionManager.TryGetColorNodeInPosition(position, out var node);
-            
-            if (node != null)
+
+            if (node)
                 EventsController.Fire(new EventModels.Game.NodeTapped());
+            else
+                EventsController.Fire(new EventModels.Game.BackgroundTapped());
         }
         
         private void OnPointerUp(Vector3 position)

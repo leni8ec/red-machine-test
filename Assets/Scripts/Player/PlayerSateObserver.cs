@@ -17,13 +17,20 @@ namespace Player
         public void Subscribe()
         {
             EventsController.Subscribe<EventModels.Game.NodeTapped>(this, OnNodeTapped);
+            EventsController.Subscribe<EventModels.Game.BackgroundTapped>(this, OnBackgroundTapped);
             EventsController.Subscribe<EventModels.Game.PlayerFingerRemoved>(this, OnPlayerFingerRemoved);
         }
         
         public void Unsubscribe()
         {
             EventsController.Unsubscribe<EventModels.Game.NodeTapped>(OnNodeTapped);
+            EventsController.Unsubscribe<EventModels.Game.BackgroundTapped>(OnBackgroundTapped);
             EventsController.Unsubscribe<EventModels.Game.PlayerFingerRemoved>(OnPlayerFingerRemoved);
+        }
+
+        private void OnBackgroundTapped(EventModels.Game.BackgroundTapped e)
+        {
+            _setStateAction?.Invoke(PlayerState.Scrolling);
         }
 
         private void OnNodeTapped(EventModels.Game.NodeTapped e)

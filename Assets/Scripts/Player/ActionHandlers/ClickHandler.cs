@@ -11,12 +11,15 @@ namespace Player.ActionHandlers
         [SerializeField] private float clickToDragDuration;
 
         public event Action<Vector3> PointerDownEvent;
-        public event Action<Vector3> ClickEvent;
         public event Action<Vector3> PointerUpEvent;
+        public event Action<Vector3> ClickEvent;
+
         public event Action<Vector3> DragStartEvent;
         public event Action<Vector3> DragEndEvent;
+        public event Action<Vector3> DragEvent;
 
         private Vector3 _pointerDownPosition;
+        private Vector3 _pointerDragPosition;
 
         private bool _isClick;
         private bool _isDrag;
@@ -55,29 +58,41 @@ namespace Player.ActionHandlers
 
                 _isClick = false;
             }
+            else if (_isDrag)
+            {
+                _pointerDragPosition = CameraHolder.Instance.MainCamera.ScreenToWorldPoint(Input.mousePosition);
+            }
         }
 
         private void LateUpdate()
         {
-            if (!_isClick)
-                return;
-
-            _clickHoldDuration += Time.deltaTime;
-            if (_clickHoldDuration >= clickToDragDuration)
+            if (_isClick)
             {
-                DragStartEvent?.Invoke(_pointerDownPosition);
+                _clickHoldDuration += Time.deltaTime;
+                if (_clickHoldDuration >= clickToDragDuration)
+                {
+                    DragStartEvent?.Invoke(_pointerDownPosition);
 
-                _isClick = false;
-                _isDrag = true;
+                    _isClick = false;
+                    _isDrag = true;
+                }
+            }
+            else if (_isDrag)
+            {
+                DragEvent?.Invoke(_pointerDragPosition);
             }
         }
 
-        public void SetDragEventHandlers(Action<Vector3> dragStartEvent, Action<Vector3> dragEndEvent)
+        public void AddDragEventHandlers(Action<Vector3> dragStartEvent, Action<Vector3> dragEndEvent)
         {
-            ClearEvents();
+            DragStartEvent += dragStartEvent;
+            DragEndEvent += dragEndEvent;
+        }
 
-            DragStartEvent = dragStartEvent;
-            DragEndEvent = dragEndEvent;
+        public void RemoveDragEventHandlers(Action<Vector3> dragStartEvent, Action<Vector3> dragEndEvent)
+        {
+            DragStartEvent -= dragStartEvent;
+            DragEndEvent -= dragEndEvent;
         }
 
         public void ClearEvents()
