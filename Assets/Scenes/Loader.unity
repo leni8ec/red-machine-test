@@ -199,7 +199,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   activityType: 1
-  startLevelIndex: 0
+  startLevelIndex: 9
 --- !u!4 &1307544591
 Transform:
   m_ObjectHideFlags: 0
