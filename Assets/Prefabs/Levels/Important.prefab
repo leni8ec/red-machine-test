@@ -44,6 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d01a9f7ac3b442baced1047a9983c75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cameraMoveMultiplier: 0.01
+  cameraLerpMultiplier: 6
+  maxMoveOffset: {x: 3, y: 5}
 --- !u!1 &3828653299366524336
 GameObject:
   m_ObjectHideFlags: 0

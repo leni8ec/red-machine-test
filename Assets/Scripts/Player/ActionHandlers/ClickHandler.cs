@@ -3,7 +3,6 @@ using Camera;
 using UnityEngine;
 using Utils.Singleton;
 
-
 namespace Player.ActionHandlers
 {
     public class ClickHandler : DontDestroyMonoBehaviourSingleton<ClickHandler>
@@ -16,13 +15,19 @@ namespace Player.ActionHandlers
 
         public event Action<Vector3> DragStartEvent;
         public event Action<Vector3> DragEndEvent;
+        /// <summary>
+        /// Vector3 - it's a drag delta of screen position (in pixels)
+        /// </summary>
         public event Action<Vector3> DragEvent;
 
         private Vector3 _pointerDownPosition;
-        private Vector3 _pointerDragPosition;
+        private Vector3 _pointerDragLastScreenPosition;
+        private Vector3 _pointerDragScreenPosition;
 
-        private bool _isClick;
-        private bool _isDrag;
+        private bool _isClickProcess;
+        private bool _isDragProcess;
+        private bool _isDragged;
+
         private float _clickHoldDuration;
 
 
@@ -30,56 +35,64 @@ namespace Player.ActionHandlers
         {
             if (Input.GetMouseButtonDown(0))
             {
-                _isClick = true;
+                _isClickProcess = true;
                 _clickHoldDuration = .0f;
 
                 _pointerDownPosition = CameraHolder.Instance.MainCamera.ScreenToWorldPoint(Input.mousePosition);
-                
+
                 PointerDownEvent?.Invoke(_pointerDownPosition);
-                
+
                 _pointerDownPosition = new Vector3(_pointerDownPosition.x, _pointerDownPosition.y, .0f);
             }
             else if (Input.GetMouseButtonUp(0))
             {
                 var pointerUpPosition = CameraHolder.Instance.MainCamera.ScreenToWorldPoint(Input.mousePosition);
-                    
-                if (_isDrag)
+
+                if (_isDragProcess)
                 {
                     DragEndEvent?.Invoke(pointerUpPosition);
 
-                    _isDrag = false;
+                    _isDragProcess = false;
                 }
                 else
                 {
                     ClickEvent?.Invoke(pointerUpPosition);
                 }
-                
+
                 PointerUpEvent?.Invoke(pointerUpPosition);
 
-                _isClick = false;
+                _isClickProcess = false;
             }
-            else if (_isDrag)
+            else if (_isDragProcess)
             {
-                _pointerDragPosition = CameraHolder.Instance.MainCamera.ScreenToWorldPoint(Input.mousePosition);
+                _pointerDragScreenPosition = Input.mousePosition;
+                _isDragged = _pointerDragScreenPosition != _pointerDragLastScreenPosition;
+
             }
         }
 
         private void LateUpdate()
         {
-            if (_isClick)
+            if (_isClickProcess)
             {
                 _clickHoldDuration += Time.deltaTime;
                 if (_clickHoldDuration >= clickToDragDuration)
                 {
                     DragStartEvent?.Invoke(_pointerDownPosition);
 
-                    _isClick = false;
-                    _isDrag = true;
+                    _isClickProcess = false;
+                    _isDragProcess = true;
+
+                    _pointerDragLastScreenPosition = _pointerDragScreenPosition = Input.mousePosition;
                 }
             }
-            else if (_isDrag)
+            else if (_isDragProcess)
             {
-                DragEvent?.Invoke(_pointerDragPosition);
+                if (_isDragged)
+                {
+                    DragEvent?.Invoke(_pointerDragScreenPosition - _pointerDragLastScreenPosition);
+                    _pointerDragLastScreenPosition = _pointerDragScreenPosition;
+                }
             }
         }
 
