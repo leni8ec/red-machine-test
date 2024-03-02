@@ -21,12 +21,13 @@ namespace Player.ActionHandlers
         public event Action<Vector3> DragEvent;
 
         private Vector3 _pointerDownPosition;
+        /// <summary>
+        /// Use a screen position (in pixels) 
+        /// </summary>
         private Vector3 _pointerDragLastScreenPosition;
-        private Vector3 _pointerDragScreenPosition;
 
         private bool _isClickProcess;
         private bool _isDragProcess;
-        private bool _isDragged;
 
         private float _clickHoldDuration;
 
@@ -63,38 +64,33 @@ namespace Player.ActionHandlers
 
                 _isClickProcess = false;
             }
-            else if (_isDragProcess)
-            {
-                _pointerDragScreenPosition = Input.mousePosition;
-                _isDragged = _pointerDragScreenPosition != _pointerDragLastScreenPosition;
-
-            }
-        }
-
-        private void LateUpdate()
-        {
-            if (_isClickProcess)
+            else if (_isClickProcess)
             {
                 _clickHoldDuration += Time.deltaTime;
                 if (_clickHoldDuration >= clickToDragDuration)
                 {
-                    DragStartEvent?.Invoke(_pointerDownPosition);
-
                     _isClickProcess = false;
                     _isDragProcess = true;
 
-                    _pointerDragLastScreenPosition = _pointerDragScreenPosition = Input.mousePosition;
+                    DragStartEvent?.Invoke(_pointerDownPosition);
+
+                    // reset last drag screen position for current event
+                    _pointerDragLastScreenPosition = Input.mousePosition;
                 }
             }
             else if (_isDragProcess)
             {
-                if (_isDragged)
+                var pointerDragScreenPosition = Input.mousePosition;
+                bool isDragged = pointerDragScreenPosition != _pointerDragLastScreenPosition;
+                if (isDragged)
                 {
-                    DragEvent?.Invoke(_pointerDragScreenPosition - _pointerDragLastScreenPosition);
-                    _pointerDragLastScreenPosition = _pointerDragScreenPosition;
+                    DragEvent?.Invoke(pointerDragScreenPosition - _pointerDragLastScreenPosition);
+
+                    _pointerDragLastScreenPosition = pointerDragScreenPosition;
                 }
             }
         }
+
 
         public void AddDragEventHandlers(Action<Vector3> dragStartEvent, Action<Vector3> dragEndEvent)
         {

@@ -43,21 +43,9 @@ namespace Camera
 
         private void DragAction(Vector3 dragDelta)
         {
-            // move camera
-            _targetPosition -= cameraMoveMultiplier * dragDelta;
-            ClampTargetPosition();
+            UpdateTargetPosition(dragDelta);
 
             if (_isFastMove) _isFastMove = false;
-        }
-
-        private void ClampTargetPosition()
-        {
-            // clamp to camera offset limits
-            var cameraOffset = _targetPosition - _startPosition;
-            if (Mathf.Abs(cameraOffset.x) > maxMoveOffset.x) _targetPosition.x = cameraOffset.x < 0 ? -maxMoveOffset.x : maxMoveOffset.x;
-            if (Mathf.Abs(cameraOffset.y) > maxMoveOffset.y) _targetPosition.y = cameraOffset.y < 0 ? -maxMoveOffset.y : maxMoveOffset.y;
-            // reset z coordinate
-            _targetPosition.z = _startPosition.z;
         }
 
         private void DragEndAction()
@@ -75,14 +63,36 @@ namespace Camera
         }
 
 
-        private void Update()
+        private void LateUpdate()
         {
-            bool meaningfulOffset = Vector3.Distance(_cameraTransform.position, _targetPosition) > 0.1f;
-            if (!meaningfulOffset) return;
+            bool validOffset = Vector3.Distance(_cameraTransform.position, _targetPosition) > 0.1f;
+            if (!validOffset) return;
 
+            UpdateCameraPosition();
+        }
+
+        private void UpdateCameraPosition()
+        {
             float t = Time.deltaTime * (_isFastMove ? CameraFastLerpMultiplier : cameraLerpMultiplier);
             var lerpPosition = Vector3.Lerp(_cameraTransform.position, _targetPosition, t);
             _cameraTransform.position = lerpPosition;
+        }
+
+        private void UpdateTargetPosition(Vector3 dragDelta)
+        {
+            _targetPosition -= cameraMoveMultiplier * dragDelta;
+
+            ClampTargetPosition();
+        }
+
+        private void ClampTargetPosition()
+        {
+            // clamp to camera offset limits
+            var cameraOffset = _targetPosition - _startPosition;
+            if (Mathf.Abs(cameraOffset.x) > maxMoveOffset.x) _targetPosition.x = cameraOffset.x < 0 ? -maxMoveOffset.x : maxMoveOffset.x;
+            if (Mathf.Abs(cameraOffset.y) > maxMoveOffset.y) _targetPosition.y = cameraOffset.y < 0 ? -maxMoveOffset.y : maxMoveOffset.y;
+            // reset z coordinate
+            _targetPosition.z = _startPosition.z;
         }
 
     }
